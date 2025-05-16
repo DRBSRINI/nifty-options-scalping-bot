@@ -5,9 +5,13 @@ import pandas as pd
 import numpy as np
 
 # === USER CONFIG ===
-USERNAME = 'your_aliceblue_username'
-PASSWORD = 'your_password'
-TOTP_SECRET = 'your_totp_secret'
+import os
+
+USERNAME = os.getenv('USERNAME')
+PASSWORD = os.getenv('PASSWORD')
+TOTP_SECRET = os.getenv('TOTP_SECRET')
+API_KEY = os.getenv('API_KEY')
+
 MAX_TRADES_PER_DAY = 5
 MAX_CAPITAL = 70000
 LOT_SIZE = 50
@@ -27,7 +31,7 @@ def open_callback():
     global socket_opened
     socket_opened = True
 
-alice = Aliceblue(user_id=USERNAME, api_key="your_api_key", session_id=None)
+alice = Aliceblue(user_id=USERNAME, api_key=API_KEY, session_id=None)
 alice.get_session_id(password=PASSWORD, twoFA=TOTP_SECRET)
 
 # === SYMBOL SELECTION ===
