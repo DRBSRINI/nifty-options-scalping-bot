@@ -8,12 +8,20 @@ from alice_blue import AliceBlue, TransactionType, OrderType, ProductType
 # === USER CONFIG ===
 import os
 
+from alice_blue import AliceBlue
+import os
+
 USERNAME = os.getenv('USERNAME')
 PASSWORD = os.getenv('PASSWORD')
 TOTP_SECRET = os.getenv('TOTP_SECRET')
 API_KEY = os.getenv('API_KEY')
-APP_ID = os.getenv('APP_ID')        
-DEVICE_ID = os.getenv('DEVICE_ID')  
+
+# Login and get session ID
+session_id = AliceBlue.login_and_get_sessionID(username=USERNAME, password=PASSWORD, twoFA=TOTP_SECRET, api_secret=API_KEY)
+
+# Initialize AliceBlue with session ID
+alice = AliceBlue(session_id=session_id, api_key=API_KEY)
+
 
 MAX_TRADES_PER_DAY = 5
 MAX_CAPITAL = 70000
