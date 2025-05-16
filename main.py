@@ -3,6 +3,7 @@ import datetime
 from alice_blue import *
 import pandas as pd
 import numpy as np
+from alice_blue import AliceBlue, TransactionType, OrderType, ProductType
 
 # === USER CONFIG ===
 import os
@@ -31,7 +32,7 @@ def open_callback():
     global socket_opened
     socket_opened = True
 
-alice = Aliceblue(user_id=USERNAME, api_key=API_KEY, session_id=None)
+alice = AliceBlue(user_id=USERNAME, api_key=API_KEY, session_id=None)
 alice.get_session_id(password=PASSWORD, twoFA=TOTP_SECRET)
 
 # === SYMBOL SELECTION ===
