@@ -12,6 +12,8 @@ USERNAME = os.getenv('USERNAME')
 PASSWORD = os.getenv('PASSWORD')
 TOTP_SECRET = os.getenv('TOTP_SECRET')
 API_KEY = os.getenv('API_KEY')
+APP_ID = os.getenv('APP_ID')        
+DEVICE_ID = os.getenv('DEVICE_ID')  
 
 MAX_TRADES_PER_DAY = 5
 MAX_CAPITAL = 70000
@@ -32,7 +34,7 @@ def open_callback():
     global socket_opened
     socket_opened = True
 
-alice = AliceBlue(user_id=USERNAME, api_key=API_KEY, session_id=None)
+alice = AliceBlue(username=USERNAME, password=PASSWORD, twoFA=TOTP_SECRET, api_secret=API_KEY, app_id='your_app_id', device_id='your_device_id')
 alice.get_session_id(password=PASSWORD, twoFA=TOTP_SECRET)
 
 # === SYMBOL SELECTION ===
