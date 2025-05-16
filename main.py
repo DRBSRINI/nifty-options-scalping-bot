@@ -15,6 +15,16 @@ USERNAME = os.getenv('USERNAME')
 PASSWORD = os.getenv('PASSWORD')
 TOTP_SECRET = os.getenv('TOTP_SECRET')
 API_KEY = os.getenv('API_KEY')
+APP_ID = os.getenv('APP_ID')  
+
+session_id = AliceBlue.login_and_get_sessionID(
+    username=USERNAME,
+    password=PASSWORD,
+    twoFA=TOTP_SECRET,
+    api_secret=API_KEY,
+    app_id=APP_ID
+)
+
 
 # Login and get session ID
 session_id = AliceBlue.login_and_get_sessionID(username=USERNAME, password=PASSWORD, twoFA=TOTP_SECRET, api_secret=API_KEY)
