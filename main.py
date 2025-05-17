@@ -1,16 +1,42 @@
 import time
 import datetime
+import requests
 from alice_blue import *
 import pandas as pd
 import numpy as np
 import os
+import pyotp
+
+# === ENVIRONMENT CREDENTIALS ===
+USERNAME = os.environ['USERNAME']
+PASSWORD = os.environ['PASSWORD']
+TOTP_SECRET = os.environ['TOTP_SECRET']
+API_SECRET = os.environ['API_KEY']  # This is the API Secret, not just a public key
+APP_ID = os.environ['APP_ID']
+REDIRECT_URL = os.environ['REDIRECT_URL']
+
+# === GENERATE TOTP ===
+two_fa = pyotp.TOTP(TOTP_SECRET).now()
+print("🔐 TOTP Generated:", two_fa)
+
+# === LOGIN ===
+session_id = AliceBlue.login_and_get_sessionID(
+    username=USERNAME,
+    password=PASSWORD,
+    twoFA=two_fa,
+    api_secret=API_SECRET,
+    app_id=APP_ID,
+    redirect_url=REDIRECT_URL,
+    user_agent="Mozilla/5.0"
+)
+print("✅ Session ID:", session_id)
+
+# === CONNECT TO ALICEBLUE ===
+alice = AliceBlue(username=USERNAME, session_id=session_id)
+profile = alice.get_profile()
+print("🧾 Connected as:", profile["name"])
 
 # === CONFIG ===
-USERNAME = os.getenv("USERNAME")
-PASSWORD = os.getenv("PASSWORD")
-TOTP_SECRET = os.getenv("TOTP_SECRET")
-API_SECRET = os.getenv("API_SECRET")
-APP_ID = os.getenv("APP_ID")
 MAX_TRADES_PER_DAY = 5
 MAX_CAPITAL = 70000
 LOT_SIZE = 50
@@ -19,29 +45,6 @@ TARGET_PROFIT = 25
 TRAILING_STOP = 5
 ENTRY_START = datetime.time(9, 26)
 ENTRY_END = datetime.time(15, 0)
-
-print("🛠 Login Debug")
-print("USERNAME:", bool(USERNAME))
-print("PASSWORD:", bool(PASSWORD))
-print("TOTP_SECRET:", bool(TOTP_SECRET))
-print("API_SECRET:", bool(API_SECRET))
-print("APP_ID:", bool(APP_ID))
-
-
-# === GET SESSION ID ===
-session_id = AliceBlue.login_and_get_sessionID(
-    username=USERNAME,
-    password=PASSWORD,
-    twoFA=TOTP_SECRET,
-    api_secret=API_SECRET,
-    app_id=APP_ID
-)
-print("✅ Session ID:", session_id)
-
-# === CONNECT TO ALICEBLUE ===
-alice = AliceBlue(username=USERNAME, session_id=session_id)
-profile = alice.get_profile()
-print("🧾 Connected as:", profile["name"])
 
 # === SYMBOL FETCH ===
 def get_option_symbol(index='NIFTY', strike_diff=-1, option_type='CE'):
