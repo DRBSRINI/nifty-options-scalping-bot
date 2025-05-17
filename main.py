@@ -1,13 +1,16 @@
 import time
 import datetime
-import requests
 from alice_blue import *
 import pandas as pd
 import numpy as np
+import os
 
 # === CONFIG ===
-USERNAME = '445901'  # Your AliceBlue Client ID
-ACCESS_TOKEN_URL = "https://software.myriadtechnology.in/backend/aliceblue/access_token?email=drbsrini@gmail.com"
+USERNAME = os.getenv("USERNAME")
+PASSWORD = os.getenv("PASSWORD")
+TOTP_SECRET = os.getenv("TOTP_SECRET")
+API_SECRET = os.getenv("API_SECRET")
+APP_ID = os.getenv("APP_ID")
 MAX_TRADES_PER_DAY = 5
 MAX_CAPITAL = 70000
 LOT_SIZE = 50
@@ -18,10 +21,13 @@ ENTRY_START = datetime.time(9, 26)
 ENTRY_END = datetime.time(15, 0)
 
 # === GET SESSION ID ===
-response = requests.get(ACCESS_TOKEN_URL)
-if response.status_code != 200 or not response.text:
-    raise Exception("❌ Failed to fetch session ID from access_token URL")
-session_id = response.text.strip()
+session_id = AliceBlue.login_and_get_sessionID(
+    username=USERNAME,
+    password=PASSWORD,
+    twoFA=TOTP_SECRET,
+    api_secret=API_SECRET,
+    app_id=APP_ID
+)
 print("✅ Session ID:", session_id)
 
 # === CONNECT TO ALICEBLUE ===
