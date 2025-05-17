@@ -11,7 +11,7 @@ import pyotp
 USERNAME = os.environ['USERNAME']
 PASSWORD = os.environ['PASSWORD']
 TOTP_SECRET = os.environ['TOTP_SECRET']
-API_SECRET = os.environ['API_KEY']  # This is the API Secret, not just a public key
+API_SECRET = os.environ['API_SECRET']
 APP_ID = os.environ['APP_ID']
 REDIRECT_URL = os.environ['REDIRECT_URL']
 
