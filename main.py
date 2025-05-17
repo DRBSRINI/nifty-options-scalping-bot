@@ -11,9 +11,9 @@ import pyotp
 USERNAME = os.environ['USERNAME']
 PASSWORD = os.environ['PASSWORD']
 TOTP_SECRET = os.environ['TOTP_SECRET']
-API_SECRET = os.environ['API_SECRET']
+API_SECRET = os.environ['API_SECRET']  # This is the API Secret
 APP_ID = os.environ['APP_ID']
-REDIRECT_URL = os.environ['REDIRECT_URLS']
+REDIRECT_URL = os.environ['REDIRECT_URL']
 
 # === GENERATE TOTP ===
 two_fa = pyotp.TOTP(TOTP_SECRET).now()
@@ -25,9 +25,7 @@ session_id = AliceBlue.login_and_get_sessionID(
     password=PASSWORD,
     twoFA=two_fa,
     api_secret=API_SECRET,
-    app_id=APP_ID,
-    redirect_url=REDIRECT_URL,
-    user_agent="Mozilla/5.0"
+    app_id=APP_ID
 )
 print("✅ Session ID:", session_id)
 
