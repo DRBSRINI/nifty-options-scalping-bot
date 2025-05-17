@@ -13,7 +13,7 @@ PASSWORD = os.environ['PASSWORD']
 TOTP_SECRET = os.environ['TOTP_SECRET']
 API_SECRET = os.environ['API_SECRET']
 APP_ID = os.environ['APP_ID']
-REDIRECT_URL = os.environ['REDIRECT_URL']
+REDIRECT_URL = os.environ['REDIRECT_URLS']
 
 # === GENERATE TOTP ===
 two_fa = pyotp.TOTP(TOTP_SECRET).now()
