@@ -20,6 +20,14 @@ TRAILING_STOP = 5
 ENTRY_START = datetime.time(9, 26)
 ENTRY_END = datetime.time(15, 0)
 
+print("🛠 Login Debug")
+print("USERNAME:", bool(USERNAME))
+print("PASSWORD:", bool(PASSWORD))
+print("TOTP_SECRET:", bool(TOTP_SECRET))
+print("API_SECRET:", bool(API_SECRET))
+print("APP_ID:", bool(APP_ID))
+
+
 # === GET SESSION ID ===
 session_id = AliceBlue.login_and_get_sessionID(
     username=USERNAME,
