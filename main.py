@@ -1,38 +1,13 @@
 import time
 import datetime
+import requests
 from alice_blue import *
 import pandas as pd
 import numpy as np
-from alice_blue import AliceBlue, TransactionType, OrderType, ProductType
 
-# === USER CONFIG ===
-import os
-
-from alice_blue import AliceBlue
-import os
-
-USERNAME = os.getenv('USERNAME')
-PASSWORD = os.getenv('PASSWORD')
-TOTP_SECRET = os.getenv('TOTP_SECRET')
-API_KEY = os.getenv('API_KEY')
-APP_ID = os.getenv('APP_ID')  
-
-session_id = AliceBlue.login_and_get_sessionID(
-    username=USERNAME,
-    password=PASSWORD,
-    twoFA=TOTP_SECRET,
-    api_secret=API_KEY,
-    app_id=APP_ID
-)
-
-
-# Login and get session ID
-session_id = AliceBlue.login_and_get_sessionID(username=USERNAME, password=PASSWORD, twoFA=TOTP_SECRET, api_secret=API_KEY)
-
-# Initialize AliceBlue with session ID
-alice = AliceBlue(session_id=session_id, api_key=API_KEY)
-
-
+# === CONFIG ===
+USERNAME = '445901'  # Your AliceBlue Client ID
+ACCESS_TOKEN_URL = "https://software.myriadtechnology.in/backend/aliceblue/access_token?email=drbsrini@gmail.com"
 MAX_TRADES_PER_DAY = 5
 MAX_CAPITAL = 70000
 LOT_SIZE = 50
@@ -42,22 +17,20 @@ TRAILING_STOP = 5
 ENTRY_START = datetime.time(9, 26)
 ENTRY_END = datetime.time(15, 0)
 
-# === INIT SESSION ===
-socket_opened = False
+# === GET SESSION ID ===
+response = requests.get(ACCESS_TOKEN_URL)
+if response.status_code != 200 or not response.text:
+    raise Exception("❌ Failed to fetch session ID from access_token URL")
+session_id = response.text.strip()
+print("✅ Session ID:", session_id)
 
-def event_handler_quote_update(message):
-    pass
+# === CONNECT TO ALICEBLUE ===
+alice = AliceBlue(username=USERNAME, session_id=session_id)
+profile = alice.get_profile()
+print("🧾 Connected as:", profile["name"])
 
-def open_callback():
-    global socket_opened
-    socket_opened = True
-
-alice = AliceBlue(username=USERNAME, password=PASSWORD, twoFA=TOTP_SECRET, api_secret=API_KEY, app_id='your_app_id', device_id='your_device_id')
-alice.get_session_id(password=PASSWORD, twoFA=TOTP_SECRET)
-
-# === SYMBOL SELECTION ===
+# === SYMBOL FETCH ===
 def get_option_symbol(index='NIFTY', strike_diff=-1, option_type='CE'):
-    # This will fetch the ATM strike and adjust as needed
     ltp = float(alice.get_ltp(alice.get_instrument_by_symbol("NSE", index))['ltp'])
     atm_strike = round(ltp / 50) * 50 + (strike_diff * 50)
     expiry = alice.get_next_expiry("NSE", index_type="OPTIDX")
@@ -87,9 +60,16 @@ def check_entry_signal(df_dict):
         c60 = df_dict['60minute']['close'].iloc[-1]
         c60_prev = df_dict['60minute']['close'].iloc[-2]
 
-        rsi = ta.RSI(df_dict['3minute']['close'], timeperiod=14).iloc[-1]
+        rsi_series = pd.Series(df_dict['3minute']['close'])
+        delta = rsi_series.diff().dropna()
+        gain = (delta.where(delta > 0, 0)).rolling(14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        rsi_last = rsi.iloc[-1] if not rsi.empty else 50
 
-        price_up = lambda x, y: (x - y) / y * 100 >= 1
+        def price_up(x, y):
+            return (x - y) / y * 100 >= 1
 
         if all([
             c3 > c3_prev,
@@ -98,14 +78,15 @@ def check_entry_signal(df_dict):
             price_up(c3, c3_prev),
             price_up(c15, c15_prev),
             price_up(c60, c60_prev),
-            35 < rsi < 65
+            35 < rsi_last < 65
         ]):
             return True
         return False
-    except:
+    except Exception as e:
+        print("Signal check error:", e)
         return False
 
-# === ORDER MANAGEMENT ===
+# === ORDER MANAGER ===
 class TradeManager:
     def __init__(self):
         self.trades_taken = {'CE': 0, 'PE': 0}
@@ -122,8 +103,7 @@ class TradeManager:
 
         price = alice.get_ltp(instrument)['ltp'] + 0.05
         qty = int(MAX_CAPITAL / price / LOT_SIZE) * LOT_SIZE
-        if qty > LOT_SIZE:
-            qty = LOT_SIZE
+        qty = min(qty, LOT_SIZE)
 
         order = alice.place_order(
             transaction_type=TransactionType.Buy,
@@ -138,7 +118,7 @@ class TradeManager:
             trailing_sl=TRAILING_STOP,
             is_amo=False
         )
-        print(f"Order placed for {side}: {order}")
+        print(f"✅ Order placed for {side}: {order}")
         self.record_trade(side)
 
 # === MAIN LOOP ===
@@ -154,7 +134,7 @@ while True:
                 manager.place_order(instrument, option_type)
 
     elif now > ENTRY_END:
-        print("Trading window closed.")
+        print("⏹ Trading window closed.")
         break
 
     time.sleep(60)
